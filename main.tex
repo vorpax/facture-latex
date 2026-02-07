@@ -1,0 +1,196 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[official]{eurosym}
+\usepackage[left=2cm, right=2cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{tabularx}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{etoolbox} 
+\usepackage{xfp}
+\usepackage{siunitx}
+
+\sisetup{
+    output-decimal-marker = {,},
+    group-separator = {\,},
+    group-minimum-digits = 4,
+    detect-all
+}
+
+\setlength{\parindent}{0pt}
+
+\definecolor{InvoiceBlue}{HTML}{006EB4}
+\definecolor{InvoiceBlack}{HTML}{333333}
+\definecolor{TableHeaderGray}{HTML}{F5F5F5}
+
+\newcommand{\TotalHT}{0}
+\newcommand{\ContenuTableau}{}
+
+\newcommand{\numerofacture}{2025-001}
+\newcommand{\DateFacture}{01/02/2025}
+\newcommand{\DateEcheance}{01/03/2025}
+\newcommand{\MontantPaye}{0}
+\newcommand{\IBAN}{FR76 XXXX XXXX XXXX XXXX XXXX XXX}
+\newcommand{\BIC}{XXXXFRPPXXX}
+\newcommand{\RIB}{XXXXX XXXXX XXXXXXXXXXX XX}
+\newcommand{\SirenClient}{XXX XXX XXX}
+\newcommand{\MailClient}{client@example.com}
+\newcommand{\LocaClient}{123 Rue Exemple, 75001 Paris}
+\newcommand{\MailPrestataire}{prestataire@example.com}
+\newcommand{\DenominationSocialePrestataire}{\textbf{NOM PRESTATAIRE}}
+\newcommand{\DenominationSocialeClient}{\textbf{NOM CLIENT}}
+\newcommand{\SirenPrestataire}{XXX XXX XXX}
+\newcommand{\LocaPrestataire}{456 Avenue Exemple, 75002 Paris}
+
+\newcommand{\AjouterLigne}[4]{%
+    \edef\TotalLigne{\fpeval{round(#3 * #4, 2)}}%
+    \xdef\TotalHT{\fpeval{round(\TotalHT + \TotalLigne, 2)}}%
+    
+    \begingroup
+    \edef\x{\endgroup
+        \noexpand\appto\noexpand\ContenuTableau{%
+            \noexpand\textcolor{InvoiceBlue}{\unexpanded{#1}} & 
+            \unexpanded{#2} & 
+            \noexpand\num{#3} \noexpand\euro{} & 
+            \unexpanded{#4} & 
+            \noexpand\num{\TotalLigne} \noexpand\euro{} \noexpand\\
+            \noexpand\midrule
+        }%
+    }\x
+}
+
+\newcommand{\DescriptionBlock}[2]{%
+    \textbf{#1}\par
+    \vspace{0.1cm}
+    \begin{itemize}[leftmargin=*, noitemsep, topsep=0pt, partopsep=0pt, label={-}]
+        #2
+    \end{itemize}
+    \vspace{0.1cm}
+}
+
+\newcommand{\GenererLesLignes}{
+    
+    \AjouterLigne{Prestation}{%
+        \DescriptionBlock{Description de la prestation principale}{
+            \item Point détaillé numéro un
+            \item Point détaillé numéro deux
+        }
+    }{1500.00}{4}
+
+    \AjouterLigne{Service}{%
+        \DescriptionBlock{Description du service}{
+            \item Détail du service fourni
+        }
+    }{450.00}{2}
+
+    \AjouterLigne{Forfait}{%
+        \DescriptionBlock{Forfait mensuel}{
+            \item Maintenance
+            \item Support technique
+        }
+    }{200.00}{1}
+
+    \AjouterLigne{Consultation}{%
+        \DescriptionBlock{Heures de consultation}{
+            \item Analyse des besoins
+            \item Recommandations
+        }
+    }{100.00}{5}
+}
+
+\newcommand{\CalculerMontantDu}{
+    \edef\MontantDu{\fpeval{round(\TotalHT - \MontantPaye, 2)}}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\color{InvoiceBlack}\small\textbf{TVA non applicable - article 293 B du CGI}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\begin{document}
+\color{InvoiceBlack}
+
+\GenererLesLignes
+\CalculerMontantDu
+
+\begin{tabularx}{\textwidth}{@{} X X @{}}
+    \textbf{\MakeUppercase{Émetteur}} \par
+    \DenominationSocialePrestataire \par
+    SIREN \SirenPrestataire \par
+    \MailPrestataire \par
+    \vspace{0.2cm}
+    \LocaPrestataire
+    & 
+    \textbf{\MakeUppercase{Destinataire}} \par
+    \DenominationSocialeClient \par
+    SIREN \SirenClient \par
+    \MailClient \par
+    \vspace{0.2cm}
+    \LocaClient
+\end{tabularx}
+
+\vspace{1.2cm}
+
+\begin{tabularx}{\textwidth}{@{} X >{\raggedleft\arraybackslash}X @{}}
+    {\fontsize{32}{38}\bfseries FACTURE \numerofacture}
+    &
+    \begin{tabular}{@{}l r@{}}
+        Date & \DateFacture \\
+        Échéance & \DateEcheance \\
+        \addlinespace
+        \textbf{Montant dû} & \textbf{\num{\MontantDu}}\, \euro{} \\
+    \end{tabular}
+\end{tabularx}
+
+\vspace{1.cm}
+
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{
+    p{3.0cm}                
+    X                       
+    >{\raggedleft}r
+    >{\centering}c
+    >{\raggedleft\arraybackslash}r
+}
+    \toprule
+    \rowcolor{TableHeaderGray}
+    \textbf{Type} & \textbf{Description} & \textbf{P.U. HT} & \textbf{Qté} & \textbf{Total} \\
+    \midrule
+    
+    \ContenuTableau
+    
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+
+\vfill 
+
+\begin{tabularx}{\textwidth}{@{} X >{\raggedleft\arraybackslash}X @{}}
+    \begin{tabular}[b]{@{}l@{}}
+        \textbf{RIB:} \par \\
+        \texttt{IBAN: \IBAN} \par \\
+        \texttt{BIC: \BIC } \par \\
+        \texttt{RIB: \RIB} \par \\
+    \end{tabular}
+    
+    & 
+  
+    \begin{tabular}[b]{@{}l r@{}}
+        Total HT & \num{\TotalHT} \euro{} \\
+        Total net de TVA & \num{\TotalHT} \euro{} \\     
+        Payé à ce jour & \num{\MontantPaye} \euro{} \\
+        \addlinespace
+        \textbf{Montant dû} & \textbf{\num{\MontantDu}} \euro{} \\
+    \end{tabular}
+
+\end{tabularx}
+
+\medskip
+\end{document}
